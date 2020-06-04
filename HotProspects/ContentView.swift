@@ -33,10 +33,28 @@ struct DisplayView : View {
 
 struct ContentView: View {
     let user = User()
+    @State private var selectedTab = 0
     var body: some View {
-        VStack {
-            EditView()
-            DisplayView()
+        
+        TabView(selection: $selectedTab){
+            VStack {
+                EditView()
+                DisplayView()
+            }.onTapGesture {
+                self.selectedTab = 1
+            }
+            .tabItem{
+                Image(systemName: "star")
+                Text("One")
+            }
+            .tag(0)
+            
+            Text("tab 2")
+            .tabItem{
+                Image(systemName: "star.fill")
+                Text("Two")
+            }
+            .tag(1)
         }
         .environmentObject(user)
     }
