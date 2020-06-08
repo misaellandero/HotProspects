@@ -31,6 +31,10 @@ struct DisplayView : View {
     }
 }
 
+enum NetworkError: Error {
+    case badURL, requestFailed, unknow
+}
+
 struct ContentView: View {
     let user = User()
     @State private var selectedTab = 0
@@ -57,6 +61,51 @@ struct ContentView: View {
             .tag(1)
         }
         .environmentObject(user)
+        .onAppear{
+            self.fetchData(from: "https://www.appllole.com"){
+              result in
+                switch result {
+                case .success(let str):
+                    print(str)
+                case .failure(let error):
+                    switch error {
+                    case .badURL:
+                        print("Bad URL")
+                    case .requestFailed:
+                        print("Network problems")
+                    case .unknow:
+                    print("Unknow error")
+                    }
+                }
+                
+            }
+        }
+            
+        
+        
+    }
+    
+    func fetchData(from urlString: String, completion: @escaping ((Result<String, NetworkError>) -> Void)) {
+        
+        guard let url = URL(string: urlString) else {
+            completion(.failure(.badURL))
+            return
+        }
+        URLSession.shared.dataTask(with: url){
+            data, response, error in
+            DispatchQueue.main.async {
+                if let data = data {
+                    let StringData = String(decoding: data, as: UTF8.self)
+                    completion(.success(StringData))
+                } else if error != nil {
+                    completion(.failure(.requestFailed))
+                } else {
+                    completion(.failure(.unknow))
+                }
+            }
+        }.resume()
+        
+        
     }
 }
 
