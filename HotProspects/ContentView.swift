@@ -7,7 +7,7 @@
 //
 
 import SwiftUI
-
+import SamplePackage
 class User: ObservableObject {
     @Published var name = "Taylor Swift"
 }
@@ -54,6 +54,15 @@ struct ContentView: View {
     @State private var backgroundColor = Color.red
     let user = User()
     @State private var selectedTab = 0
+    
+    let posiblenNumbers = Array(1...60)
+    
+    var results: String {
+        let selected = posiblenNumbers.random(7).sorted()
+        let string = selected.map(String.init)
+        return string.joined(separator: ", ")
+    }
+    
     var body: some View {
         
         TabView(selection: $selectedTab){
@@ -105,6 +114,48 @@ struct ContentView: View {
                 Text("Two")
             }
             .tag(1)
+            VStack{
+                Button("Solicitar Permiso"){
+                    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]){success,error in
+                        
+                        if success {
+                            print("all set!")
+                        } else if let error = error {
+                            print(error.localizedDescription)
+                        }
+                        
+                    }
+                }
+                
+                Button("Programar permiso"){
+                    let content = UNMutableNotificationContent()
+                    content.title = "Feed the cat"
+                    content.subtitle = "It looks hungry"
+                    content.sound = UNNotificationSound.default
+
+                    // show this notification five seconds from now
+                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+
+                    // choose a random identifier
+                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+
+                    // add our notification request
+                    UNUserNotificationCenter.current().add(request)
+                }
+            }
+            .tabItem{
+                Image(systemName: "star.slash")
+                Text("Three")
+            }
+            .tag(2)
+            VStack{
+                Text(results)
+            }
+            .tabItem{
+                Image(systemName: "star.slash")
+                Text("fourt")
+            }
+            .tag(3)
         }
         .environmentObject(user)
         .onAppear{
