@@ -35,15 +35,40 @@ enum NetworkError: Error {
     case badURL, requestFailed, unknow
 }
 
+class DelayUpdater: ObservableObject {
+    var value = 0 {
+        willSet {
+            objectWillChange.send()
+        }
+    }
+    init(){
+        for i in 1...10 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i)){
+                self.value += 1
+            }
+        }
+    }
+}
 struct ContentView: View {
+    @ObservedObject var updater = DelayUpdater()
     let user = User()
     @State private var selectedTab = 0
     var body: some View {
         
         TabView(selection: $selectedTab){
             VStack {
-                EditView()
+                Image("Image")
+                    .interpolation(.none)
+                .resizable()
+                .scaledToFit()
+                    .frame(maxHeight: .infinity )
+                    .background(Color.black)
+                    .edgesIgnoringSafeArea(.all)
+                
+                /*EditView()
                 DisplayView()
+                Text(" \(self.updater.value)")*/
+                
             }.onTapGesture {
                 self.selectedTab = 1
             }
