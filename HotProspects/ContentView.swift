@@ -51,6 +51,7 @@ class DelayUpdater: ObservableObject {
 }
 struct ContentView: View {
     @ObservedObject var updater = DelayUpdater()
+    @State private var backgroundColor = Color.red
     let user = User()
     @State private var selectedTab = 0
     var body: some View {
@@ -65,20 +66,40 @@ struct ContentView: View {
                     .background(Color.black)
                     .edgesIgnoringSafeArea(.all)
                 
-                /*EditView()
-                DisplayView()
-                Text(" \(self.updater.value)")*/
-                
             }.onTapGesture {
                 self.selectedTab = 1
-            }
-            .tabItem{
+            }.tabItem{
                 Image(systemName: "star")
                 Text("One")
             }
             .tag(0)
-            
-            Text("tab 2")
+              
+            VStack{
+                Text("Cambiar color")
+                   .padding()
+                   .background(self.backgroundColor)
+                   .contextMenu{
+                       
+                       Button(action:{
+                           self.backgroundColor = Color.green
+                       }){
+                           Text("Verde")
+                       }
+                       
+                       Button(action:{
+                                              self.backgroundColor = Color.yellow
+                                          }){
+                                              Text("Amarillo")
+                                          }
+                       Button(action:{
+                                              self.backgroundColor = Color.blue
+                                          }){
+                                              Text("Azul")
+                                          }
+                       
+                       
+                }
+            }
             .tabItem{
                 Image(systemName: "star.fill")
                 Text("Two")
