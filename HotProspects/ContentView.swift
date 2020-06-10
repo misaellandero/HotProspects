@@ -8,202 +8,36 @@
 
 import SwiftUI
 import SamplePackage
-class User: ObservableObject {
-    @Published var name = "Taylor Swift"
-}
-
-
-
-struct EditView : View {
-    @EnvironmentObject var user: User
-    
-    var body: some View {
-        TextField("Name", text: $user.name)
-    }
-    
-}
-
-struct DisplayView : View {
-    @EnvironmentObject var user: User
-    
-    var body: some View {
-        Text(user.name)
-    }
-}
-
-enum NetworkError: Error {
-    case badURL, requestFailed, unknow
-}
-
-class DelayUpdater: ObservableObject {
-    var value = 0 {
-        willSet {
-            objectWillChange.send()
-        }
-    }
-    init(){
-        for i in 1...10 {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i)){
-                self.value += 1
-            }
-        }
-    }
-}
+ 
 struct ContentView: View {
-    @ObservedObject var updater = DelayUpdater()
-    @State private var backgroundColor = Color.red
-    let user = User()
-    @State private var selectedTab = 0
-    
-    let posiblenNumbers = Array(1...60)
-    
-    var results: String {
-        let selected = posiblenNumbers.random(7).sorted()
-        let string = selected.map(String.init)
-        return string.joined(separator: ", ")
-    }
+    var prospects = Prospects()
     
     var body: some View {
-        
-        TabView(selection: $selectedTab){
-            VStack {
-                Image("Image")
-                    .interpolation(.none)
-                .resizable()
-                .scaledToFit()
-                    .frame(maxHeight: .infinity )
-                    .background(Color.black)
-                    .edgesIgnoringSafeArea(.all)
-                
-            }.onTapGesture {
-                self.selectedTab = 1
-            }.tabItem{
-                Image(systemName: "star")
-                Text("One")
+        TabView{
+            ProspectView(filter: .none)
+                .tabItem{
+                    Image(systemName: "person.3")
+                    Text("EveryOne")
             }
-            .tag(0)
-              
-            VStack{
-                Text("Cambiar color")
-                   .padding()
-                   .background(self.backgroundColor)
-                   .contextMenu{
-                       
-                       Button(action:{
-                           self.backgroundColor = Color.green
-                       }){
-                           Text("Verde")
-                       }
-                       
-                       Button(action:{
-                                              self.backgroundColor = Color.yellow
-                                          }){
-                                              Text("Amarillo")
-                                          }
-                       Button(action:{
-                                              self.backgroundColor = Color.blue
-                                          }){
-                                              Text("Azul")
-                                          }
-                       
-                       
-                }
+            ProspectView(filter: .uncontacted)
+                .tabItem{
+                    Image(systemName: "checkmark.circle")
+                    Text("Contacted")
             }
-            .tabItem{
-                Image(systemName: "star.fill")
-                Text("Two")
+            ProspectView(filter: .contacted)
+                .tabItem{
+                    Image(systemName: "questionmark.diamond")
+                    Text("Uncontacted")
             }
-            .tag(1)
-            VStack{
-                Button("Solicitar Permiso"){
-                    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]){success,error in
-                        
-                        if success {
-                            print("all set!")
-                        } else if let error = error {
-                            print(error.localizedDescription)
-                        }
-                        
-                    }
-                }
-                
-                Button("Programar permiso"){
-                    let content = UNMutableNotificationContent()
-                    content.title = "Feed the cat"
-                    content.subtitle = "It looks hungry"
-                    content.sound = UNNotificationSound.default
-
-                    // show this notification five seconds from now
-                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
-
-                    // choose a random identifier
-                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-
-                    // add our notification request
-                    UNUserNotificationCenter.current().add(request)
-                }
-            }
-            .tabItem{
-                Image(systemName: "star.slash")
-                Text("Three")
-            }
-            .tag(2)
-            VStack{
-                Text(results)
-            }
-            .tabItem{
-                Image(systemName: "star.slash")
-                Text("fourt")
-            }
-            .tag(3)
-        }
-        .environmentObject(user)
-        .onAppear{
-            self.fetchData(from: "https://www.appllole.com"){
-              result in
-                switch result {
-                case .success(let str):
-                    print(str)
-                case .failure(let error):
-                    switch error {
-                    case .badURL:
-                        print("Bad URL")
-                    case .requestFailed:
-                        print("Network problems")
-                    case .unknow:
-                    print("Unknow error")
-                    }
-                }
-                
+            MeView()
+                .tabItem{
+                    Image(systemName: "person.crop.square")
+                    Text("Me")
             }
         }
-            
-        
-        
+        .environmentObject(prospects)
     }
-    
-    func fetchData(from urlString: String, completion: @escaping ((Result<String, NetworkError>) -> Void)) {
-        
-        guard let url = URL(string: urlString) else {
-            completion(.failure(.badURL))
-            return
-        }
-        URLSession.shared.dataTask(with: url){
-            data, response, error in
-            DispatchQueue.main.async {
-                if let data = data {
-                    let StringData = String(decoding: data, as: UTF8.self)
-                    completion(.success(StringData))
-                } else if error != nil {
-                    completion(.failure(.requestFailed))
-                } else {
-                    completion(.failure(.unknow))
-                }
-            }
-        }.resume()
-        
-        
-    }
+     
 }
 
 struct ContentView_Previews: PreviewProvider {
